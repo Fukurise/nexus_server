@@ -1,0 +1,38 @@
+# jenkins docker-compose.yml
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    hostname: jenkins.${BASE_DOMAIN}
+    env_file:
+      - ../.env
+    environment:
+      - TZ=Asia/Seoul
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - ./jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    restart: unless-stopped
+
+    # Traefik 라벨
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jenkins.rule=Host(`jenkins.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.jenkins.entrypoints=websecure"
+      - "traefik.http.routers.jenkins.service=jenkins"
+      - "traefik.http.routers.jenkins.tls.certresolver=letsencrypt"
+      - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
+      - "traefik.docker.network=traefik_network"
+
+      # 헤더 설정
+      - "traefik.http.middlewares.jenkins-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+
+    networks:
+      - traefik_network
+
+networks:
+  traefik_network:
+    external: true

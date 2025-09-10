@@ -1,0 +1,40 @@
+# traefik docker-compose.yml
+services:
+
+  traefik:
+    image: "traefik:v3.0"
+    container_name: "traefik"
+    env_file:
+      - ../.env
+    command:
+      # 개발환경용 
+      # - --api.insecure=true 
+     
+      # 프로바이더 설정
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=nexus_network
+
+      # 인증 엔드포인트 설정
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+
+      # # Let's Encrypt 인증 설정
+      - --certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+
+    ports:
+      - "443:443"
+      - "80:80"
+    
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acme.json:/acme.json
+
+    networks:
+      - traefik_network
+
+networks:
+  traefik_network:
+    external: true

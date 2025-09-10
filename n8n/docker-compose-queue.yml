@@ -1,0 +1,172 @@
+# n8n docker-compose-queue.yml
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: nexus_n8n_main
+    env_file:
+      - .env
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=${PORT}
+      - N8N_PROTOCOL=https
+      - N8N_BASE_URL=https://${BASE_DOMAIN}
+      - WEBHOOK_URL=https://${BASE_DOMAIN}
+
+      # 데이터베이스 설정
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=nexus_postgres_db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+
+      # Log 설정
+      - N8N_LOG_FORMAT=json
+      - N8N_LOG_FILE_COUNT_MAX=50
+      - N8N_LOG_FILE_SIZE_MAX=10
+
+      # 노드 설정
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
+      - NODE_FUNCTION_ALLOW_EXTERNAL=*
+
+      # Queue 모드 설정 (Main)
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=nexus_n8n_redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - N8N_DISABLE_PRODUCTION_MAIN_PROCESS=true
+      
+      # Task Runner 설정
+      - N8N_RUNNERS_ENABLED=true
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=true
+      
+      # 권한 설정
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      
+      # 타임존 설정
+      - GENERIC_TIMEZONE=Asia/Seoul
+    
+    volumes:
+      - ./data:/home/node/.n8n
+    
+    ports:
+      - "${PORT}:5678"
+    
+    restart: unless-stopped
+    
+    depends_on:
+      - n8n_redis
+    
+    networks:
+      - nexus_network
+
+  n8n_worker_1:
+    image: n8nio/n8n:latest
+    container_name: nexus_n8n_worker_1
+    env_file:
+      - .env
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      
+      # 데이터베이스 설정
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=nexus_postgres_db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      
+      # Queue 모드 Worker 설정
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=nexus_n8n_redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      
+      # Task Runner 설정
+      - N8N_RUNNERS_ENABLED=true
+      
+      # 권한 설정
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      
+      # 타임존 설정
+      - GENERIC_TIMEZONE=Asia/Seoul
+      
+      # Worker 전용 설정
+      - NODE_OPTIONS=--max-old-space-size=2048
+
+    volumes:
+      - ./data:/home/node/.n8n
+    
+    restart: unless-stopped
+    
+    depends_on:
+      - n8n_redis
+      - n8n
+    
+    networks:
+      - nexus_network
+
+  n8n_worker_2:
+    image: n8nio/n8n:latest
+    container_name: nexus_n8n_worker_2
+    env_file:
+      - .env
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      
+      # 데이터베이스 설정
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=nexus_postgres_db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      
+      # Queue 모드 Worker 설정
+      - EXECUTIONS_MODE=queue
+      - QUEUE_BULL_REDIS_HOST=nexus_n8n_redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      
+      # Task Runner 설정
+      - N8N_RUNNERS_ENABLED=true
+      
+      # 권한 설정
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      
+      # 타임존 설정
+      - GENERIC_TIMEZONE=Asia/Seoul
+
+    volumes:
+      - ./data:/home/node/.n8n
+    
+    restart: unless-stopped
+    
+    depends_on:
+      - n8n_redis
+      - n8n
+    
+    networks:
+      - nexus_network
+
+  n8n_redis:
+    image: redis:7-alpine
+    container_name: nexus_n8n_redis
+    environment:
+      - TZ=Asia/Seoul
+    
+    volumes:
+      - ./redis_data:/data
+    
+    ports:
+      - "6379:6379"
+    
+    restart: unless-stopped
+    
+    networks:
+      - nexus_network
+    
+    # Redis 설정 최적화
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+networks:
+  nexus_network:
+    external: true

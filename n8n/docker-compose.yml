@@ -1,0 +1,82 @@
+# n8n docker-compose.yml
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: nexus_n8n
+    env_file:
+      - ../.env
+    environment:
+      # 기본 설정
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=https
+      - N8N_BASE_URL=https://n8n.${BASE_DOMAIN}
+      - WEBHOOK_URL=https://n8n.${BASE_DOMAIN}/
+      - N8N_PROXY_HOPS=1
+
+      # 데이터베이스 설정
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=nexus_postgres_db
+      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      
+      # Log 설정
+      - N8N_LOG_FORMAT=json
+      - N8N_LOG_FILE_COUNT_MAX=50
+      - N8N_LOG_FILE_SIZE_MAX=10
+      # - N8N_LOG_LEVEL=error # info, warn, error
+      
+      # 경고 메시지 비활성화
+      - NODE_NO_WARNINGS=1
+
+      # 실행 데이터 
+      - EXECUTIONS_DATA_MAX_AGE=168
+
+      # 코드 노드 설정
+      - N8N_RUNNERS_ENABLED=true
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
+
+      # 권한 설정
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      
+      # 타임존 설정
+      - GENERIC_TIMEZONE=Asia/Seoul
+
+    volumes:
+      - ./data:/home/node/.n8n
+    
+    restart: unless-stopped
+
+    ports:
+      - "${N8N_PORT}:5678"
+
+    # expose:
+    #   - "5678"
+
+    labels:
+    # Traefik 라벨
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      # - "traefik.http.routers.n8n.service=n8n"
+      - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      - "traefik.docker.network=traefik_network"
+
+      # 헤더 설정
+      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-Host=n8n.${BASE_DOMAIN}"
+      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Real-IP=0.0.0.0"
+    
+    networks:
+      - nexus_network
+      - traefik_network
+
+networks:
+  nexus_network:
+    external: true
+  traefik_network:
+    external: true

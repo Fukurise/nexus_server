@@ -1,0 +1,23 @@
+name: byeong98_nexus
+
+include:
+  # backbone 핵심 서비스
+  - path: ./traefik/docker-compose.yml
+    profiles: [ 'backbone']
+    
+  - path: ./db/postgres/docker-compose.yml
+    profiles: [ 'backbone']
+
+  # workflows 자동화 서비스
+  - path: ./n8n/docker-compose.yml
+    profiles: [ 'workflows']
+
+  # CI/CD 서비스
+  - path: ./jenkins/docker-compose.yml
+    profiles: [ 'cicd']
+
+networks:
+  nexus_network:
+    external: true
+  traefik_network:
+    external: true

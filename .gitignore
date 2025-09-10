@@ -1,0 +1,30 @@
+# MacOS
+.DS_Store
+
+#환경변수 파일
+.env
+*.env
+
+# config files
+config/
+*/config/
+
+# Let's Encrypt 인증 파일
+acme.json
+
+# Data files and directories
+data/
+*/data/
+**/data/
+*.data
+*.db
+jenkins_data/
+
+# Database specific
+db/postgres/data/
+db/*/data/
+
+# Log files
+*.log
+logs/
+
