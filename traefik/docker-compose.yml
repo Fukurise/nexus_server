@@ -9,17 +9,21 @@ services:
     command:
       # 개발환경용 
       # - --api.insecure=true 
-     
+
       # 프로바이더 설정
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=nexus_network
+      - --providers.docker.network=traefik_network
 
       # 인증 엔드포인트 설정
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
 
-      # # Let's Encrypt 인증 설정
+      # HTTP to HTTPS 리다이렉트 미들웨어
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+
+      # Let's Encrypt 인증 설정
       - --certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
@@ -27,7 +31,7 @@ services:
     ports:
       - "443:443"
       - "80:80"
-    
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./acme.json:/acme.json
