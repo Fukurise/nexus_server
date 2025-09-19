@@ -18,7 +18,7 @@ data/
 **/data/
 *.data
 *.db
-jenkins_data/
+*/jenkins_data/
 
 # Database specific
 db/postgres/data/
