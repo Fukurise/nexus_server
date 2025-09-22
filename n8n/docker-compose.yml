@@ -11,9 +11,7 @@ services:
       - N8N_HOST=0.0.0.0
       - N8N_PORT=${N8N_PORT}
       - N8N_PROTOCOL=https
-      - N8N_BASE_URL=https://n8n.${BASE_DOMAIN}
       - WEBHOOK_URL=https://n8n.${BASE_DOMAIN}/
-      - N8N_PROXY_HOPS=1
 
       # 데이터베이스 설정
       - DB_TYPE=postgresdb
@@ -58,25 +56,14 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`n8n.${BASE_DOMAIN}`)"
       - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.service=n8n"
       - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
       - "traefik.docker.network=traefik_network"
 
-      # 헤더 설정
+      # WebSocket 지원
+      - "traefik.http.routers.n8n.middlewares=n8n-headers"
       - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-Host=n8n.${BASE_DOMAIN}"
-      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Real-IP=0.0.0.0"
-      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-For=0.0.0.0"
-      
-      # 보안 헤더 추가
-      - "traefik.http.middlewares.n8n-security.headers.customrequestheaders.Strict-Transport-Security=max-age=31536000; includeSubDomains"
-      - "traefik.http.middlewares.n8n-security.headers.customrequestheaders.X-Content-Type-Options=nosniff"
-      - "traefik.http.middlewares.n8n-security.headers.customrequestheaders.X-Frame-Options=DENY"
-      - "traefik.http.middlewares.n8n-security.headers.customrequestheaders.X-XSS-Protection=1; mode=block"
-      
-      # 미들웨어 적용
-      - "traefik.http.routers.n8n.middlewares=n8n-headers,n8n-security"
+      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-For="
     
 
     networks:
