@@ -26,11 +26,19 @@ services:
       # Let's Encrypt 인증 설정
       - --certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
 
+      # 로그 설정
+      - --log.level=${TRAEFIK_LOG_LEVEL:-INFO}
+      - --log.filepath=/logs/traefik.log
+      - --accesslog=true
+      - --accesslog.filepath=/logs/access.log
+      - --accesslog.bufferingsize=100
+
     ports:
-      - "443:443"
       - "80:80"
+      - "443:443"
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
