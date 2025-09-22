@@ -28,3 +28,5 @@ db/*/data/
 *.log
 logs/
 
+# Traefik
+traefik/logs/
