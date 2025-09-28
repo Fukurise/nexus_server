@@ -1,0 +1,109 @@
+# monitoring docker-compose.yml
+services:
+  # Prometheus 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nexus_prometheus
+    env_file:
+      - ../.env
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=200h'
+    
+    # 개발환경용 UI
+    #   - '--web.enable-lifecycle'
+    #   - '--web.enable-admin-api'
+    # ports:
+    #   - '9090:9090'
+
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/data:/prometheus
+
+    restart: unless-stopped
+    networks:
+      - nexus_network
+
+  # Grafana GUI
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SERVER_DOMAIN=gf.${BASE_DOMAIN}
+      - GF_SERVER_ROOT_URL=https://gf.${BASE_DOMAIN}
+      - GF_SERVER_ENFORCE_DOMAIN=true
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    ports:
+      - '${GRAFANA_PORT}:3000'
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+
+    labels:
+      # Traefik 라벨
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`gf.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3030"
+      - "traefik.docker.network=traefik_network"
+
+    networks:
+      - nexus_network
+
+  # PostgreSQL 메트릭을 위한 exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: nexus_postgres_exporter
+    env_file:
+      - ../.env
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@nexus_postgres_db:5432/${POSTGRES_DB}?sslmode=disable"
+    ports:
+      - "${POSTGRES_EXPORTER_PORT}:9187"
+    restart: unless-stopped
+    networks:
+      - nexus_network
+
+  # 리소스 모니터링용 Cadvisor
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: nexus_cadvisor
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    ports:
+      - "${CADVISOR_PORT}:8080"
+    networks:
+      - nexus_network
+
+  # n8n용 Node Exporter
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: nexus_node_exporter
+    pid: "host"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/rootfs"
+    restart: unless-stopped
+    ports:
+      - "${NODE_EXPORTER_PORT}:9100"
+    networks:
+      - nexus_network
+
+networks:
+  nexus_network:
+    external: true
