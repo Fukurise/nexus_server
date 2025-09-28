@@ -13,6 +13,12 @@
 ### 3. CI/CD Services (지속적 통합/배포)
 - **Jenkins**: CI/CD 파이프라인 관리
 
+### 4. Monitoring (서비스 상태 확인)
+- **prometheus**: 메트릭 수집
+- **grafana**: 메트릭 시각화
+- **postgres-exporter**: PostgreSQL 메트릭 수집
+- **cadvisor**: 리소스 모니터링
+- **node-exporter**: 노드 메트릭 수집(n8n)
 
 ## 사전 요구사항
 
@@ -31,8 +37,13 @@
 # 도메인 설정
 BASE_DOMAIN=your-domain.com
 
-# Let's Encrypt 설정
+# traefik 설정
 LETSENCRYPT_EMAIL=your-email@example.com
+TRAEFIK_METRICS_PORT=8081
+
+# jenkins
+JENKINS_PORT=8080
+JENKINS_SLAVE_PORT=50000
 
 # PostgreSQL 설정
 POSTGRES_USER=nexus_user
@@ -44,6 +55,22 @@ POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
 # n8n 설정
 N8N_ENCRYPTION_KEY=your_32_character_encryption_key_here
 N8N_PORT=5678
+
+
+
+# postgreSQL_Exporter 설정
+POSTGRES_EXPORTER_PORT=9187
+
+# node-exporter 설정
+NODE_EXPORTER_PORT=9100
+
+# cadvisor 설정
+CADVISOR_PORT=8080
+
+# grafana 설정
+GRAFANA_PORT=3000
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=admin
 ```
 
 ### 2. traefik 인증파일 생성
