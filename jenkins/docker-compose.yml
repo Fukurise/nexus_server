@@ -2,17 +2,17 @@
 services:
   jenkins:
     image: jenkins/jenkins:lts-jdk17
-    container_name: jenkins
+    container_name: nexus_jenkins
     hostname: jenkins.${BASE_DOMAIN}
     env_file:
       - ../.env
     environment:
       - TZ=Asia/Seoul
     ports:
-      - 8080:8080
-      - 50000:50000
+      - "${JENKINS_PORT}:8080"
+      - "${JENKINS_SLAVE_PORT}:50000"
     volumes:
-      - ./jenkins_data:/var/jenkins_home
+      - ./data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
 
     restart: unless-stopped
@@ -31,8 +31,8 @@ services:
       - "traefik.http.middlewares.jenkins-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
 
     networks:
-      - traefik_network
+      - nexus_network
 
 networks:
-  traefik_network:
+  nexus_network:
     external: true
