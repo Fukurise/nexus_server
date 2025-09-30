@@ -3,6 +3,7 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: nexus_n8n
+    profiles: [ 'workflows' ]
     env_file:
       - ../.env
     environment:
