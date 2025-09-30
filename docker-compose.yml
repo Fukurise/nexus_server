@@ -23,5 +23,3 @@ include:
 networks:
   nexus_network:
     external: true
-  traefik_network:
-    external: true
