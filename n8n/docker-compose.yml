@@ -17,7 +17,7 @@ services:
       # 데이터베이스 설정
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=nexus_postgres_db
-      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
+      - DB_POSTGRESDB_PORT=5432 
       - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
       - DB_POSTGRESDB_USER=${POSTGRES_USER}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
@@ -69,7 +69,6 @@ services:
       - "traefik.http.routers.n8n.middlewares=n8n-headers"
       - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Forwarded-For="
-    
 
     networks:
       - nexus_network
