@@ -17,8 +17,11 @@ services:
       - "${POSTGRES_PORT}:5432"
     restart: unless-stopped
     networks:
-      - nexus_network  
+      - nexus_network
+      - core_network
       
 networks:
   nexus_network:
+    external: true
+  core_network:
     external: true

@@ -3,7 +3,7 @@ name: byeong98_nexus
 include:
   # backbone 핵심 서비스
   - path: ./traefik/docker-compose.yml
-    profiles: [ 'backbone', 'n8n' ]
+    profiles: [ 'backbone']
 
   - path: ./db/postgres/docker-compose.yml
     profiles: [ 'backbone', 'n8n' ]
@@ -18,4 +18,6 @@ include:
 
 networks:
   nexus_network:
+    external: true
+  core_network:
     external: true

@@ -73,7 +73,10 @@ services:
 
     networks:
       - nexus_network
+      - core_network
 
 networks:
   nexus_network:
+    external: true
+  core_network:
     external: true

@@ -4,7 +4,7 @@ services:
   traefik:
     image: "traefik:v3.0"
     container_name: "nexus_traefik"
-    profiles: [ 'backbone', 'n8n' ]
+    profiles: [ 'backbone']
     env_file:
       - ../.env
     command:
