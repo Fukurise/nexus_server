@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres:17.4
     container_name: nexus_postgres_db
-    profiles: [ 'backbone' ]
+    profiles: [ 'backbone', 'n8n' ]
     env_file:
       - ../../.env
     environment:
