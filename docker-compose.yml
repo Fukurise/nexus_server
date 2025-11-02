@@ -16,10 +16,6 @@ include:
   - path: ./jenkins/docker-compose.yml
     profiles: [ 'cicd' ]
 
-  # 모니터링 서비스
-  - path: ./monitoring/docker-compose.yml
-    profiles: [ 'monitoring' ]
-
 networks:
   nexus_network:
     external: true
